@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Geoprocessamento</title>
+    <link rel="shortcut icon" type="image/png" href="image/geo.png">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <base target="_blank">
+    <link rel="stylesheet" type="text/css" href="./Qgis2threejs.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="./threejs/three.min.js"></script>
+    <script src="./threejs/OrbitControls.js"></script>
+    <script src="./threejs/ViewHelper.js"></script>
+    <script src="./Qgis2threejs.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="./image/fatec.png" alt="Logo FATEC" class="logo">
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li class="active"><i class="fas fa-map"></i> Visualização 3D</li>
+                <li><i class="fas fa-layer-group"></i> Camadas</li>
+            </ul>
+        </div>
+        <div class="sidebar-footer">
+            <img src="./image/geo.png" alt="Logo GEO" class="logo-small">
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="title">
+                <h1>HIDROGRAFIA E MODELO DE ELEVAÇÃO DO VALE DO PARAÍBA E LITORAL NORTE</h1>
+            </div>
+            <div class="controls">
+                <button class="btn" id="fullscreen-btn"><i class="fas fa-expand"></i></button>
+                <button class="btn" id="zoom-in-btn"><i class="fas fa-search-plus"></i></button>
+                <button class="btn" id="zoom-out-btn"><i class="fas fa-search-minus"></i></button>
+            </div>
+        </div>
+
+        <!-- 3D View Container -->
+        <div id="view">
+            <div id="northarrow"></div>
+            <div id="navigation"></div>
+        </div>
+
+        <!-- Legend Panel -->
+        <div class="legend-panel">
+            <div class="legend-header">
+                <h3>Legenda</h3>
+                <button class="btn-toggle"><i class="fas fa-chevron-down"></i></button>
+            </div>
+            <div class="legend-content">
+                <img src="./image/legenda.png" alt="Legenda" class="legend-img">
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Copernicus DEM is a Digital Surface Model (DSM) - spatial resolution 30m</p>
+            <div class="footer-links">
+                <a href="https://www.esa.int/Applications/Observing_the_Earth/Copernicus"><i class="fas fa-download"></i> Baixar dados</a>
+                <a href="#"><i class="fas fa-share-alt"></i> Compartilhar</a>
+                <a href="#"><i class="fas fa-info-circle"></i> Sobre</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layer Panel -->
+    <div id="layerpanel" class="modern-panel">
+        <div class="panel-header">
+            <h3>Camadas</h3>
+            <button class="btn-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="layerlist">
+            <!-- Camada DEM Copernicus adicionada manualmente -->
+            <div class="custom-layer">
+                <div class="layer-header">
+                    <input type="checkbox" id="dem-copernicus-toggle" checked>
+                    <label for="dem-copernicus-toggle">DEM Copernicus</label>
+                </div>
+                <div class="layer-content">
+                    <div class="layer-info">
+                        <div class="layer-preview">
+                            <div class="dem-preview-gradient"></div>
+                        </div>
+                        <div class="layer-details">
+                            <p><strong>Tipo:</strong> Raster DEM</p>
+                            <p><strong>Resolução:</strong> 30m</p>
+                            <p><strong>Fonte:</strong> European Space Agency (ESA)</p>
+                        </div>
+                    </div>
+                    <div class="layer-controls">
+                        <div class="control-group">
+                            <label for="dem-opacity">Exagero vertical (3.5):</label>
+                            <input type="range" id="dem-opacity" min="0" max="100" value="100" class="layer-slider">
+                            <span class="slider-value">100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fim da camada DEM Copernicus -->
+        </div>
+    </div>
+
+    <!-- Animation Box -->
+    <div id="narrativebox" class="ef1 modern-panel">
+        <div class="panel-header">
+            <h3>Navegação</h3>
+        </div>
+        <div id="narbody"></div>
+        <div id="nextbtn"></div>
+    </div>
+
+    <script>
+        // Configuração inicial
+        Q3D.Config.allVisible = true;
+        Q3D.Config.viewpoint = {lookAt:{x:464925.6893123526,y:7512360.57515638,z:-2.410515297437259e-13},pos:{x:449788.8999272955,y:7212682.9470756445,z:31746.437137691275}};
+        Q3D.Config.localMode = true;
+
+        // Inicialização do visualizador
+        var container = document.getElementById("view"),
+            app = Q3D.application,
+            gui = Q3D.gui;
+
+        app.init(container);       // initialize viewer
+
+        // Variáveis para armazenar referências às camadas DEM
+        var demLayer = null;
+        var originalDEMScale = 1.0;
+        var demLayerId = null;
+
+        // load the scene
+        app.loadSceneFile("./data/index/scene.js", function (scene) {
+            // scene file has been loaded
+            app.start();
+            
+            // Encontrar a camada DEM no mapa de camadas
+            console.log("Camadas disponíveis:", Object.keys(app.scene.mapLayers));
+            
+            // Procurar a camada DEM (geralmente tem "DEM" ou "dem" no nome)
+            for (var id in app.scene.mapLayers) {
+                var layer = app.scene.mapLayers[id];
+                if (layer.type === Q3D.LayerType.DEM || 
+                    (id.toLowerCase().includes("dem") || 
+                     (layer.properties && layer.properties.name && 
+                      layer.properties.name.toLowerCase().includes("dem")))) {
+                    demLayer = layer;
+                    demLayerId = id;
+                    console.log("Camada DEM encontrada:", id, layer);
+                    
+                    // Armazenar a escala original para cálculos de exagero vertical
+                    if (layer.objectGroup && layer.objectGroup.scale) {
+                        originalDEMScale = layer.objectGroup.scale.z || 1.0;
+                    }
+                    break;
+                }
+            }
+            
+            // Se não encontrou uma camada específica, usar a primeira camada disponível
+            if (!demLayer && Object.keys(app.scene.mapLayers).length > 0) {
+                demLayerId = Object.keys(app.scene.mapLayers)[0];
+                demLayer = app.scene.mapLayers[demLayerId];
+                console.log("Usando primeira camada disponível:", demLayerId, demLayer);
+                
+                if (demLayer.objectGroup && demLayer.objectGroup.scale) {
+                    originalDEMScale = demLayer.objectGroup.scale.z || 1.0;
+                }
+            }
+            
+            // Implementação personalizada dos botões de zoom
+            // Adiciona os métodos zoomIn e zoomOut ao objeto cameraAction
+            app.cameraAction.zoomIn = function() {
+                // Obtém a posição atual da câmera e do alvo
+                var currentPos = app.camera.position.clone();
+                var target;
+                
+                // Verifica se estamos usando OrbitControls (que tem um alvo definido)
+                if (app.controls.target) {
+                    target = app.controls.target.clone();
+                } else {
+                    // Se não tiver alvo definido, usa o centro da cena
+                    target = new THREE.Vector3(0, 0, 0);
+                }
+                
+                // Calcula o vetor da câmera para o alvo
+                var direction = new THREE.Vector3().subVectors(currentPos, target);
+                
+                // Reduz o comprimento do vetor (zoom in = aproximar)
+                direction.multiplyScalar(0.8); // Fator de zoom: 0.8 (aproxima 20%)
+                
+                // Define a nova posição da câmera
+                var newPos = new THREE.Vector3().addVectors(target, direction);
+                app.camera.position.copy(newPos);
+                
+                // Atualiza os controles e renderiza a cena
+                app.controls.update();
+                app.render(true);
+            };
+            
+            app.cameraAction.zoomOut = function() {
+                // Obtém a posição atual da câmera e do alvo
+                var currentPos = app.camera.position.clone();
+                var target;
+                
+                // Verifica se estamos usando OrbitControls (que tem um alvo definido)
+                if (app.controls.target) {
+                    target = app.controls.target.clone();
+                } else {
+                    // Se não tiver alvo definido, usa o centro da cena
+                    target = new THREE.Vector3(0, 0, 0);
+                }
+                
+                // Calcula o vetor da câmera para o alvo
+                var direction = new THREE.Vector3().subVectors(currentPos, target);
+                
+                // Aumenta o comprimento do vetor (zoom out = afastar)
+                direction.multiplyScalar(1.2); // Fator de zoom: 1.2 (afasta 20%)
+                
+                // Define a nova posição da câmera
+                var newPos = new THREE.Vector3().addVectors(target, direction);
+                app.camera.position.copy(newPos);
+                
+                // Atualiza os controles e renderiza a cena
+                app.controls.update();
+                app.render(true);
+            };
+        }, function (scene) {
+            // all relevant files have been loaded
+        });
+
+        // Toggle legend panel
+        document.querySelector('.btn-toggle').addEventListener('click', function() {
+            document.querySelector('.legend-content').classList.toggle('collapsed');
+            this.querySelector('i').classList.toggle('fa-chevron-down');
+            this.querySelector('i').classList.toggle('fa-chevron-up');
+        });
+
+        // Toggle layer panel
+        document.querySelector('.sidebar-menu li:nth-child(2)').addEventListener('click', function() {
+            document.getElementById('layerpanel').classList.toggle('visible');
+        });
+
+        // Close layer panel
+        document.querySelector('.btn-close').addEventListener('click', function() {
+            document.getElementById('layerpanel').classList.remove('visible');
+        });
+
+        // Botões de controle
+        document.getElementById('zoom-in-btn').addEventListener('click', function() {
+            if (app.cameraAction.zoomIn) {
+                app.cameraAction.zoomIn();
+            }
+        });
+
+        document.getElementById('zoom-out-btn').addEventListener('click', function() {
+            if (app.cameraAction.zoomOut) {
+                app.cameraAction.zoomOut();
+            }
+        });
+
+        document.getElementById('fullscreen-btn').addEventListener('click', function() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                container.requestFullscreen();
+            }
+        });
+
+        // Controles da camada DEM Copernicus
+        document.getElementById('dem-opacity').addEventListener('input', function() {
+            var value = this.value;
+            this.nextElementSibling.textContent = value + '%';
+            
+            // Alterar a opacidade da camada DEM
+            if (demLayer) {
+                // Método 1: Tentar usar método setOpacity se existir
+                if (typeof demLayer.setOpacity === 'function') {
+                    demLayer.setOpacity(value / 100);
+                }
+                // Método 2: Tentar alterar a opacidade dos materiais diretamente
+                else if (demLayer.objectGroup) {
+                    demLayer.objectGroup.traverse(function(object) {
+                        if (object.material) {
+                            if (Array.isArray(object.material)) {
+                                object.material.forEach(function(mat) {
+                                    if (mat.opacity !== undefined) {
+                                        mat.opacity = value / 100;
+                                        mat.transparent = value < 100;
+                                        mat.needsUpdate = true;
+                                    }
+                                });
+                            } else {
+                                if (object.material.opacity !== undefined) {
+                                    object.material.opacity = value / 100;
+                                    object.material.transparent = value < 100;
+                                    object.material.needsUpdate = true;
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Renderizar a cena para aplicar as mudanças
+                app.render();
+            }
+        });
+
+        document.getElementById('dem-exaggeration').addEventListener('input', function() {
+            var value = parseInt(this.value);
+            this.nextElementSibling.textContent = value + 'x';
+            
+            // Alterar o exagero vertical da camada DEM
+            if (demLayer) {
+                // Método 1: Tentar usar método setVerticalExaggeration se existir
+                if (typeof demLayer.setVerticalExaggeration === 'function') {
+                    demLayer.setVerticalExaggeration(value);
+                }
+                // Método 2: Alterar a escala Z do grupo de objetos
+                else if (demLayer.objectGroup && demLayer.objectGroup.scale) {
+                    // Aplicar o exagero vertical baseado na escala original
+                    demLayer.objectGroup.scale.z = originalDEMScale * value;
+                    
+                    // Se houver objetos filhos com escala própria
+                    demLayer.objectGroup.traverse(function(object) {
+                        if (object !== demLayer.objectGroup && object.scale) {
+                            // Preservar as escalas X e Y, ajustar apenas Z
+                            object.scale.z = (object.userData.originalScaleZ || 1.0) * value;
+                        }
+                    });
+                }
+                
+                // Renderizar a cena para aplicar as mudanças
+                app.render();
+            }
+        });
+
+        document.getElementById('dem-copernicus-toggle').addEventListener('change', function() {
+            var isChecked = this.checked;
+            
+            // Mostrar/ocultar a camada DEM
+            if (demLayer) {
+                // Método 1: Tentar usar propriedade visible
+                if (demLayer.visible !== undefined) {
+                    demLayer.visible = isChecked;
+                }
+                // Método 2: Alterar visibilidade do grupo de objetos
+                else if (demLayer.objectGroup) {
+                    demLayer.objectGroup.visible = isChecked;
+                }
+                
+                // Renderizar a cena para aplicar as mudanças
+                app.render();
+            }
+        });
+    </script>
+</body>
+</html>

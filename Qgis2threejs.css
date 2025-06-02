@@ -1,0 +1,541 @@
+/* 
+   Modelo 1: Design Profissional com Sidebar
+   Tema: Azul Corporativo
+*/
+
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #3498db;
+  --accent-color: #2980b9;
+  --text-color: #333;
+  --light-text: #ecf0f1;
+  --bg-color: #f5f7fa;
+  --panel-bg: #ffffff;
+  --sidebar-width: 240px;
+  --header-height: 60px;
+  --footer-height: 50px;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --border-radius: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background-color: var(--primary-color);
+  color: var(--light-text);
+  z-index: 1000;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h3 {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 20px 0;
+}
+
+.sidebar-menu ul {
+  list-style: none;
+}
+
+.sidebar-menu li {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-menu li i {
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar-menu li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-menu li.active {
+  background-color: var(--secondary-color);
+  border-left: 4px solid var(--accent-color);
+}
+
+.sidebar-footer {
+  padding: 15px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Main Content */
+.main-content {
+  margin-left: var(--sidebar-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-bar {
+  height: var(--header-height);
+  background-color: var(--panel-bg);
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 900;
+}
+
+.top-bar .title h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  background-color: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+/* View Container */
+#view {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  background: linear-gradient(to bottom, #98c8f6 0%, #cbebff 40%, #f0f9ff 100%);
+  overflow: hidden; /* Garante que o conteúdo não transborde */
+}
+
+/* Legend Panel */
+.legend-panel {
+  position: absolute;
+  top: 70px;
+  right: 20px;
+  width: 145px;
+  background-color: #2980b9;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  z-index: 800;
+  overflow: hidden;
+}
+
+.legend-header {
+  padding: 12px 15px;
+  background-color: var(--primary-color);
+  color: var(--light-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legend-header h3 {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.btn-toggle {
+  background: none;
+  border: none;
+  color: var(--light-text);
+  cursor: pointer;
+}
+
+.legend-content {
+  padding: 15px;
+  max-height: 300px;
+  transition: max-height 0.3s ease;
+}
+
+.legend-content.collapsed {
+  max-height: 0;
+  padding: 0 15px;
+  overflow: hidden;
+}
+
+.legend-img {
+  width: 85%;
+  height: auto;
+}
+
+/* Footer */
+.footer {
+  height: var(--footer-height);
+  background-color: var(--panel-bg);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  font-size: 12px;
+  color: #666;
+}
+
+.footer-links {
+  display: flex;
+  gap: 15px;
+}
+
+.footer-links a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.footer-links a:hover {
+  color: var(--accent-color);
+}
+
+/* Modern Panel Styling */
+.modern-panel {
+  position: absolute;
+  background-color: var(--panel-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  z-index: 900;
+  overflow: hidden;
+  display: none;
+}
+
+.modern-panel.visible {
+  display: block;
+}
+
+.panel-header {
+  padding: 12px 15px;
+  background-color: var(--primary-color);
+  color: var(--light-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h3 {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: var(--light-text);
+  cursor: pointer;
+}
+
+/* Layer Panel */
+#layerpanel {
+  top: 80px;
+  left: var(--sidebar-width);
+  width: 320px;
+  max-height: 500px;
+  transform: translateX(20px);
+}
+
+#layerlist {
+  padding: 15px;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+/* Animation Box */
+#narrativebox {
+  bottom: 70px;
+  left: calc(var(--sidebar-width) + 20px);
+  width: 350px;
+}
+
+#narbody {
+  padding: 15px;
+  min-height: 100px;
+}
+
+#nextbtn {
+  padding: 10px;
+  text-align: right;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Logo Styling */
+.logo {
+  width: 150px;
+  height: auto;
+}
+
+.logo-small {
+  width: 100px;
+  height: auto;
+}
+
+/* Widgets */
+#northarrow {
+  position: absolute;
+  left: 12px;
+  bottom: 16px;
+  width: 80px;
+  height: 80px;
+  z-index: 800;
+  pointer-events: none;
+}
+
+#navigation {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 128px;
+  height: 128px;
+  z-index: 800;
+}
+
+/* Layer Styling */
+.layer {
+  padding: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.layer > div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.layer > div:nth-child(n + 2) {
+  margin-left: 20px;
+  font-size: 12px;
+}
+
+.layer input[type="range"] {
+  width: 130px;
+  height: 6px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.layer input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background-color: var(--secondary-color);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.layer select {
+  width: 130px;
+  padding: 5px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 12px;
+}
+
+/* Compatibilidade com classes originais do Qgis2threejs */
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.no-events {
+  pointer-events: none;
+}
+
+.ef1 {
+  top: 90%;
+  height: 0;
+  opacity: 0;
+}
+
+.ef1.visible {
+  transition: all ease-out .2s;
+  top: 2px;
+  height: auto;
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .top-bar .title h1 {
+    font-size: 16px;
+  }
+  
+  .legend-panel {
+    width: 250px;
+  }
+}
+
+@media (max-width: 992px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+  
+  .sidebar-header h3 {
+    font-size: 16px;
+  }
+  
+  .top-bar .title h1 {
+    font-size: 14px;
+  }
+  
+  .legend-panel {
+    width: 220px;
+  }
+  
+  #layerpanel {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 60px;
+  }
+  
+  .sidebar-header h3,
+  .sidebar-menu li span {
+    display: none;
+  }
+  
+  .sidebar-menu li {
+    justify-content: center;
+    padding: 15px 0;
+  }
+  
+  .sidebar-menu li i {
+    margin-right: 0;
+    font-size: 18px;
+  }
+  
+  .sidebar-footer {
+    padding: 10px 5px;
+  }
+  
+  .logo, .logo-small {
+    width: 40px;
+  }
+  
+  .top-bar .title h1 {
+    font-size: 12px;
+  }
+  
+  .legend-panel {
+    width: 200px;
+    right: 10px;
+    bottom: 60px;
+  }
+  
+  #layerpanel {
+    width: 250px;
+    left: 80px;
+  }
+  
+  #narrativebox {
+    width: 250px;
+    left: 80px;
+  }
+}
+
+@media (max-width: 576px) {
+  :root {
+    --sidebar-width: 0;
+  }
+  
+  .sidebar {
+    transform: translateX(-60px);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.visible {
+    transform: translateX(0);
+    width: 60px;
+  }
+  
+  .top-bar {
+    padding: 0 10px;
+  }
+  
+  .top-bar .title h1 {
+    font-size: 10px;
+  }
+  
+  .controls .btn {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .legend-panel {
+    width: 180px;
+    bottom: 50px;
+  }
+  
+  .footer {
+    padding: 0 10px;
+    font-size: 10px;
+  }
+  
+  .footer-links {
+    gap: 8px;
+  }
+  
+  #layerpanel, #narrativebox {
+    left: 20px;
+    width: calc(100% - 40px);
+  }
+}
